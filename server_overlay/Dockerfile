@@ -1,4 +1,6 @@
-ARG XIAOZHI_SERVER_IMAGE=ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest
+# Pin the tested upstream image so future `server_latest` changes cannot alter
+# this deployment unexpectedly. Override the build arg deliberately to upgrade.
+ARG XIAOZHI_SERVER_IMAGE=ghcr.nju.edu.cn/xinnan-tech/xiaozhi-esp32-server:server_latest@sha256:f77d000713fde8c4bcb6a62e83a507b4fc8f92e9e5ad523eb0cbf41a37e3913c
 FROM ${XIAOZHI_SERVER_IMAGE}
 
 COPY ha_terminal /opt/xiaozhi-esp32-server/ha_terminal
