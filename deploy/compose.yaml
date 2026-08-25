@@ -16,7 +16,9 @@ services:
       - "8003:8003"
     volumes:
       - ./data:/opt/xiaozhi-esp32-server/data
-      - ./models:/opt/xiaozhi-esp32-server/models
+      # Mount only the downloaded ASR model. Mounting the whole models
+      # directory would hide the Silero VAD model bundled in the base image.
+      - ./models/sherpa-onnx-paraformer-zh-small-2024-03-09:/opt/xiaozhi-esp32-server/models/sherpa-onnx-paraformer-zh-small-2024-03-09:ro
     deploy:
       resources:
         limits:
