@@ -5,9 +5,27 @@ from __future__ import annotations
 import os
 import time
 
-from aiohttp import web
-
 from .ha_client import HomeAssistantClient
+
+
+def compact_room_states(states):
+    result = {}
+    for room_name, roles in states.items():
+        room = {}
+        for role, item in roles.items():
+            state = item.get("state")
+            attributes = item.get("attributes", {})
+            compact = {"state": state}
+            if role == "climate":
+                for key in ("temperature", "current_temperature", "fan_mode", "swing_mode"):
+                    if attributes.get(key) is not None:
+                        compact[key] = attributes[key]
+            elif role == "light" and attributes.get("brightness") is not None:
+                compact["brightness_pct"] = round(attributes["brightness"] * 100 / 255)
+            room[role] = compact
+        if room:
+            result[room_name] = room
+    return result
 
 
 class DisplayStateServer:
@@ -20,9 +38,13 @@ class DisplayStateServer:
         self.cache_time = 0.0
 
     async def health(self, request):
+        from aiohttp import web
+
         return web.json_response({"status": "ok"})
 
     async def display(self, request):
+        from aiohttp import web
+
         if not os.environ.get("HA_TOKEN"):
             raise web.HTTPServiceUnavailable(text="HA token is not configured")
         now = time.monotonic()
@@ -33,12 +55,14 @@ class DisplayStateServer:
             except Exception:
                 raise web.HTTPBadGateway(text="Home Assistant is unavailable")
         return web.json_response(
-            {"updated_at": int(time.time()), "rooms": self.cache},
+            {"updated_at": int(time.time()), "rooms": compact_room_states(self.cache)},
             headers={"Cache-Control": "no-store"},
         )
 
 
 def main():
+    from aiohttp import web
+
     server = DisplayStateServer()
     app = web.Application()
     app.add_routes([web.get("/health", server.health), web.get("/api/display", server.display)])
