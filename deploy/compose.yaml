@@ -1,0 +1,23 @@
+services:
+  xiaozhi-ha-gateway:
+    build:
+      context: ..
+      dockerfile: server_overlay/Dockerfile
+    container_name: xiaozhi-ha-gateway
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      TZ: Asia/Shanghai
+      HA_URL: http://192.168.3.185:8123
+      HA_TOKEN: ${HA_TOKEN:?HA_TOKEN must be set}
+    ports:
+      - "8000:8000"
+      - "8003:8003"
+    volumes:
+      - ./data:/opt/xiaozhi-esp32-server/data
+      - ./models:/opt/xiaozhi-esp32-server/models
+    deploy:
+      resources:
+        limits:
+          memory: 1700M

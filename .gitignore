@@ -1,0 +1,7 @@
+deploy/.env
+deploy/data/.config.yaml
+deploy/models/
+xiaozhi-esp32-server/
+__pycache__/
+*.pyc
+.pytest_cache/

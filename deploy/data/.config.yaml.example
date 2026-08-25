@@ -1,0 +1,47 @@
+server:
+  ip: 0.0.0.0
+  port: 8000
+  http_port: 8003
+
+selected_module:
+  VAD: SileroVAD
+  ASR: SherpaParaformerASR
+  LLM: LocalControl
+  VLLM: ChatGLMVLLM
+  TTS: EdgeTTS
+  Memory: nomem
+  Intent: ha_rules
+
+Intent:
+  ha_rules:
+    type: ha_rules
+    functions:
+      - ha_control
+
+LLM:
+  LocalControl:
+    type: local_control
+
+ASR:
+  SherpaParaformerASR:
+    type: sherpa_onnx_local
+    model_dir: models/sherpa-onnx-paraformer-zh-small-2024-03-09
+    output_dir: tmp/
+    model_type: paraformer
+
+VAD:
+  SileroVAD:
+    type: silero
+    threshold: 0.5
+    threshold_low: 0.3
+    model_dir: models/snakers4_silero-vad
+    min_silence_duration_ms: 350
+
+TTS:
+  EdgeTTS:
+    type: edge
+    voice: zh-CN-XiaoxiaoNeural
+    output_dir: tmp/
+
+delete_audio: true
+enable_greeting: false

@@ -1,0 +1,23 @@
+{
+  "主卧": {
+    "climate": "climate.68e478810885_climate",
+    "light": "light.philips_cn_646670931_pceilb_s_2_light",
+    "temperature": "sensor.68e478810885_indoortemperature"
+  },
+  "次卧": {
+    "light": "light.philips_cn_646796241_pceilb_s_2_light",
+    "temperature": "sensor.zhimi_cn_645777536_rma2_temperature_p_3_7",
+    "humidity": "sensor.zhimi_cn_645777536_rma2_relative_humidity_p_3_1"
+  },
+  "客厅": {
+    "climate": "climate.68e478813c77_climate",
+    "light": "light.philips_cn_620433671_pceil_s_2_light",
+    "temperature": "sensor.68e478813c77_indoortemperature"
+  },
+  "书房": {
+    "climate": "climate.68e4788141db_climate",
+    "light": "light.philips_cn_647820106_pceilb_s_2_light",
+    "temperature": "sensor.zhimi_cn_75156188_v6_temperature_p_3_3",
+    "humidity": "sensor.zhimi_cn_75156188_v6_relative_humidity_p_3_1"
+  }
+}
