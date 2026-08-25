@@ -14,9 +14,27 @@ class IntentParserTest(unittest.TestCase):
         self.assertEqual(parse_commands("主卧空调调成高速"), [Command("主卧", "climate", "set_fan_mode", "high")])
         self.assertEqual(parse_commands("客厅空调打开摆风"), [Command("客厅", "climate", "set_swing", True)])
 
+    def test_compound_climate_command_keeps_every_action(self):
+        self.assertEqual(
+            parse_commands("打开主卧空调并且调到26度，然后调成高速并打开摆风"),
+            [
+                Command("主卧", "climate", "turn_on"),
+                Command("主卧", "climate", "set_temperature", 26),
+                Command("主卧", "climate", "set_fan_mode", "high"),
+                Command("主卧", "climate", "set_swing", True),
+            ],
+        )
+
+    def test_ambiguous_off_with_setting_is_rejected(self):
+        self.assertEqual(parse_commands("关闭主卧空调并调到26度"), [])
+
     def test_lights(self):
         self.assertEqual(parse_commands("打开书房灯"), [Command("书房", "light", "turn_on")])
         self.assertEqual(parse_commands("次卧灯亮度调到35%"), [Command("次卧", "light", "set_brightness", 35)])
+        self.assertEqual(
+            parse_commands("把书房灯切换成阅读模式"),
+            [Command("书房", "light", "set_effect", "阅读")],
+        )
 
     def test_multiple_rooms(self):
         self.assertEqual(

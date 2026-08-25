@@ -87,57 +87,105 @@ def _room_at(text: str, start: int) -> tuple[str | None, int]:
     return room, start + len(alias)
 
 
-def _parse_clause(room: str, clause: str, original: str) -> Command | None:
+def _parse_clause(room: str, clause: str, original: str) -> list[Command]:
     if "空调" in clause:
+        commands: list[Command] = []
+        swing_action = None
         if any(word in clause for word in ("打开摆风", "开启摆风", "摆风打开", "扫风打开")):
-            return Command(room, "climate", "set_swing", True, original)
-        if any(word in clause for word in ("关闭摆风", "摆风关闭", "停止摆风", "扫风关闭")):
-            return Command(room, "climate", "set_swing", False, original)
-        if any(word in clause for word in ("打开", "开启", "开空调")):
-            return Command(room, "climate", "turn_on", source_text=original)
-        if any(word in clause for word in ("关闭", "关空调")):
-            return Command(room, "climate", "turn_off", source_text=original)
+            swing_action = Command(room, "climate", "set_swing", True, original)
+        elif any(word in clause for word in ("关闭摆风", "摆风关闭", "停止摆风", "扫风关闭")):
+            swing_action = Command(room, "climate", "set_swing", False, original)
+
+        switch_text = clause
+        for phrase in ("打开摆风", "开启摆风", "摆风打开", "关闭摆风", "摆风关闭", "停止摆风",
+                       "扫风打开", "扫风关闭"):
+            switch_text = switch_text.replace(phrase, "")
+        turn_on = any(word in switch_text for word in ("打开", "开启", "开空调"))
+        turn_off = any(word in switch_text for word in ("关闭", "关空调"))
+        if turn_on and turn_off:
+            return []
+        if turn_on:
+            commands.append(Command(room, "climate", "turn_on", source_text=original))
+        elif turn_off:
+            commands.append(Command(room, "climate", "turn_off", source_text=original))
 
         temp = re.search(r"(?:温度)?(?:调到|调至)?(1[6-9]|2[0-9]|30|[一二两三四五六七八九]?十[一二三四五六七八九]?)度?", clause)
         if temp:
             value = _temperature_value(temp.group(1))
             if value is not None:
-                return Command(room, "climate", "set_temperature", value, original)
+                commands.append(Command(room, "climate", "set_temperature", value, original))
 
         for spoken, mode in FAN_MODES.items():
             if spoken in clause:
-                return Command(room, "climate", "set_fan_mode", mode, original)
+                commands.append(Command(room, "climate", "set_fan_mode", mode, original))
+                break
+        if swing_action is not None:
+            commands.append(swing_action)
+        # Turning a device off while also changing its settings is ambiguous.
+        if turn_off and len(commands) > 1:
+            return []
+        return commands
 
     if "灯" in clause:
-        if any(word in clause for word in ("打开", "开启", "开灯")):
-            return Command(room, "light", "turn_on", source_text=original)
-        if any(word in clause for word in ("关闭", "关灯")):
-            return Command(room, "light", "turn_off", source_text=original)
+        commands = []
+        turn_on = any(word in clause for word in ("打开", "开启", "开灯"))
+        turn_off = any(word in clause for word in ("关闭", "关灯"))
+        if turn_on and turn_off:
+            return []
+        if turn_on:
+            commands.append(Command(room, "light", "turn_on", source_text=original))
+        elif turn_off:
+            commands.append(Command(room, "light", "turn_off", source_text=original))
         brightness = re.search(r"(?:亮度)?(?:调到|调至)?(100|[1-9]?\d)%?", clause)
         if brightness and any(word in clause for word in ("亮度", "调亮", "调暗", "%")):
-            return Command(room, "light", "set_brightness", int(brightness.group(1)), original)
-        effect = re.search(r"(?:切换|调到|换成)(.+?)(?:模式)?$", clause)
-        if effect:
+            commands.append(Command(room, "light", "set_brightness", int(brightness.group(1)), original))
+        effect = re.search(r"(?:切换到|切换成|切换|调到|换成)(.+?)(?:模式)?$", clause)
+        if effect and any(word in clause for word in ("模式", "切换", "换成")):
             value = effect.group(1).removesuffix("灯").strip()
             if value:
-                return Command(room, "light", "set_effect", value, original)
+                commands.append(Command(room, "light", "set_effect", value, original))
+        if turn_off and len(commands) > 1:
+            return []
+        return commands
 
-    return None
+    return []
 
 
 def parse_commands(text: str) -> list[Command]:
     """Return supported commands, or an empty list for unsafe/unknown input."""
     commands: list[Command] = []
+    previous_room: str | None = None
+    previous_device: str | None = None
     for clause in filter(None, _normalize(text).split("|")):
         matches = [
             (clause.find(alias), len(alias), room)
             for alias, room in ROOM_ALIASES.items()
             if alias in clause
         ]
-        if not matches:
+        if matches:
+            _, _, room = min(matches, key=lambda item: (item[0], -item[1]))
+        elif previous_room is not None:
+            room = previous_room
+            clause = room + clause
+        else:
             continue
-        _, _, room = min(matches, key=lambda item: (item[0], -item[1]))
-        command = _parse_clause(room, clause, text)
-        if command:
-            commands.append(command)
+
+        if "空调" in clause:
+            device = "空调"
+        elif "灯" in clause:
+            device = "灯"
+        elif previous_device is not None:
+            device = previous_device
+            clause = room + device + clause.removeprefix(room)
+        else:
+            continue
+
+        parsed = _parse_clause(room, clause, text)
+        if not parsed:
+            previous_room = None
+            previous_device = None
+            continue
+        commands.extend(parsed)
+        previous_room = room
+        previous_device = device
     return commands
