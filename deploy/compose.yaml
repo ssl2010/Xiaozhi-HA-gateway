@@ -21,3 +21,21 @@ services:
       resources:
         limits:
           memory: 1700M
+
+  ha-display-api:
+    build:
+      context: ..
+      dockerfile: server_overlay/Dockerfile
+    container_name: xiaozhi-ha-display-api
+    restart: unless-stopped
+    command: ["python", "-m", "ha_terminal.display_server"]
+    environment:
+      TZ: Asia/Shanghai
+      HA_URL: http://192.168.3.185:8123
+      HA_TOKEN: ${HA_TOKEN:?HA_TOKEN must be set}
+    ports:
+      - "8090:8090"
+    deploy:
+      resources:
+        limits:
+          memory: 180M
