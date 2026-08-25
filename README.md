@@ -29,6 +29,12 @@ PYTHONPATH=. python3 -m unittest discover -s tests -v
 1. 将 `.env.example` 复制为 `.env`，只在服务器填写 HA 长期访问令牌。
 2. 将 `data/.config.yaml.example` 复制为 `data/.config.yaml`。
 3. 下载 Sherpa-ONNX 中文小模型到 `deploy/models/`。
-4. 在 `deploy/` 运行 `docker compose up -d --build`。
+4. 运行 `./scripts/deploy.sh`。
+
+服务端口：
+
+- `8000/tcp`：小智 WebSocket
+- `8003/tcp`：小智 OTA 配置接口
+- `8090/tcp`：ESP32 房间状态只读接口
 
 生产部署由 `scripts/deploy-proxmox.sh` 自动执行；脚本不会读取或上传本机其他凭据。
