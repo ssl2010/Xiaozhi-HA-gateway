@@ -30,6 +30,7 @@ PYTHONPATH=. python3 -m unittest discover -s tests -v
 2. 将 `data/.config.yaml.example` 复制为 `data/.config.yaml`。
 3. 下载 Sherpa-ONNX 中文小模型到 `deploy/models/`。
 4. 运行 `./scripts/deploy.sh`。
+5. 运行 `./scripts/verify-deployment.sh` 验证容器、OTA 地址、显示数据契约和令牌日志。
 
 `server_overlay/Dockerfile` 默认使用已经验证并固定摘要的上游镜像。升级上游
 小智服务器时，应先在测试环境重新构建和验收，再有意更新该摘要。
