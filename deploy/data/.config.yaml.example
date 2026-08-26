@@ -36,7 +36,9 @@ VAD:
     threshold: 0.5
     threshold_low: 0.3
     model_dir: models/snakers4_silero-vad
-    min_silence_duration_ms: 350
+    # Allow a natural pause between room/device and the requested setting.
+    # 350 ms caused commands such as “客厅空调，二十六度” to be split in two.
+    min_silence_duration_ms: 1000
 
 TTS:
   EdgeTTS:
