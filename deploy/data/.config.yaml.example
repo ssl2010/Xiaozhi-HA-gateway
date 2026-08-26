@@ -4,10 +4,16 @@ server:
   http_port: 8003
   websocket: ws://192.168.3.188:8000/xiaozhi/v1/
 
+# Return to idle after ten seconds without detected speech. Do not ask the LLM
+# to generate a goodbye sentence when the timeout is reached.
+close_connection_no_voice_time: 10
+end_prompt:
+  enable: false
+
 selected_module:
   VAD: SileroVAD
   ASR: SherpaParaformerASR
-  LLM: LocalControl
+  LLM: HybridChat
   VLLM: ChatGLMVLLM
   TTS: EdgeTTS
   Memory: nomem
@@ -20,8 +26,10 @@ Intent:
       - ha_control
 
 LLM:
-  LocalControl:
-    type: local_control
+  HybridChat:
+    type: hybrid_chat
+    temperature: 0.7
+    max_tokens: 500
 
 ASR:
   SherpaParaformerASR:

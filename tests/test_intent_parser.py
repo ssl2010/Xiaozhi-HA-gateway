@@ -41,6 +41,10 @@ class IntentParserTest(unittest.TestCase):
         )
         self.assertEqual(parse_commands("把书房灯切换成阅读模式"), [])
 
+    def test_floor_lamp_defaults_to_study(self):
+        self.assertEqual(parse_commands("打开落地灯"), [Command("书房", "floor_lamp", "turn_on")])
+        self.assertEqual(parse_commands("关闭书房的落地灯"), [Command("书房", "floor_lamp", "turn_off")])
+
     def test_multiple_rooms(self):
         self.assertEqual(
             parse_commands("关闭主卧空调，打开书房灯"),

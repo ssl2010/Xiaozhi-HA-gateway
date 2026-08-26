@@ -56,6 +56,18 @@ def build_service_call(
     if command.device == "light" and command.action == "set_effect":
         data["effect"] = str(command.value)
         return "light", "turn_on", data
+    if command.device == "air_purifier" and command.action == "set_preset_mode":
+        preset_mode = str(command.value)
+        if preset_mode not in {"自动", "睡眠", "最爱"}:
+            raise UnsupportedCommand("空气净化器只支持自动、睡眠或最爱模式")
+        data["preset_mode"] = preset_mode
+        return "fan", "set_preset_mode", data
+    if command.device == "air_purifier" and command.action == "set_percentage":
+        value = int(command.value)
+        if not 0 <= value <= 100:
+            raise UnsupportedCommand("空气净化器风量必须在0到100之间")
+        data["percentage"] = value
+        return "fan", "set_percentage", data
     raise UnsupportedCommand(f"不支持的动作: {command.action}")
 
 

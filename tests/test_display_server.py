@@ -17,6 +17,8 @@ class DisplayStateTest(unittest.TestCase):
         self.assertNotIn("climate", result["次卧"])
         self.assertEqual(result["次卧"]["light"]["state"], "unavailable")
         self.assertEqual(result["主卧"]["climate"]["temperature"], 25)
+        self.assertEqual(result["主卧"]["devices"][0]["type"], "climate")
+        self.assertEqual(result["次卧"]["devices"][0]["name"], "吸顶灯")
 
 
 if __name__ == "__main__":

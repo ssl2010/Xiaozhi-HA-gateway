@@ -36,6 +36,12 @@ class ServiceCallTest(unittest.TestCase):
         with self.assertRaises(UnsupportedCommand):
             build_service_call(Command("次卧", "climate", "turn_on"), self.entities)
 
+    def test_floor_lamp_uses_allowlisted_switch(self):
+        self.assertEqual(
+            build_service_call(Command("书房", "floor_lamp", "turn_off"), self.entities),
+            ("switch", "turn_off", {"entity_id": "switch.lumi_cn_lumi_158d000156069b_v1_on_p_2_1"}),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

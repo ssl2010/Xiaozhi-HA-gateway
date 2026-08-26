@@ -29,7 +29,12 @@ def _success_text(command: Command) -> str:
         "set_brightness": f"亮度已设为{command.value}%",
         "set_effect": f"已切换到{command.value}模式",
     }
-    device = "空调" if command.device == "climate" else "灯"
+    device = {
+        "climate": "空调",
+        "light": "灯",
+        "floor_lamp": "落地灯",
+        "air_purifier": "空气净化器",
+    }.get(command.device, "设备")
     return f"{command.room}{device}{labels.get(command.action, '已调整')}"
 
 

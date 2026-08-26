@@ -6,6 +6,7 @@
   },
   "次卧": {
     "light": "light.philips_cn_646796241_pceilb_s_2_light",
+    "air_purifier": "switch.zhimi_cn_645777536_rma2_on_p_2_1",
     "temperature": "sensor.zhimi_cn_645777536_rma2_temperature_p_3_7",
     "humidity": "sensor.zhimi_cn_645777536_rma2_relative_humidity_p_3_1"
   },
@@ -17,6 +18,8 @@
   "书房": {
     "climate": "climate.68e4788141db_climate",
     "light": "light.philips_cn_647820106_pceilb_s_2_light",
+    "floor_lamp": "switch.lumi_cn_lumi_158d000156069b_v1_on_p_2_1",
+    "air_purifier": "fan.zhimi_cn_75156188_v6_s_2_air_purifier",
     "temperature": "sensor.zhimi_cn_75156188_v6_temperature_p_3_3",
     "humidity": "sensor.zhimi_cn_75156188_v6_relative_humidity_p_3_1"
   }

@@ -103,6 +103,13 @@ def _room_at(text: str, start: int) -> tuple[str | None, int]:
 
 
 def _parse_clause(room: str, clause: str, original: str) -> list[Command]:
+    if "落地灯" in clause:
+        turn_on = any(word in clause for word in ("打开", "开启", "开落地灯"))
+        turn_off = any(word in clause for word in ("关闭", "关落地灯"))
+        if turn_on == turn_off:
+            return []
+        return [Command(room, "floor_lamp", "turn_on" if turn_on else "turn_off", source_text=original)]
+
     if "空调" in clause:
         commands: list[Command] = []
         swing_action = None
@@ -192,13 +199,20 @@ def parse_commands(text: str) -> list[Command]:
         ]
         if matches:
             _, _, room = min(matches, key=lambda item: (item[0], -item[1]))
+        elif "落地灯" in clause:
+            # The only configured floor lamp belongs to the study. Keep this
+            # explicit default narrow instead of guessing rooms for other devices.
+            room = "书房"
+            clause = room + clause
         elif previous_room is not None:
             room = previous_room
             clause = room + clause
         else:
             continue
 
-        if "空调" in clause:
+        if "落地灯" in clause:
+            device = "落地灯"
+        elif "空调" in clause:
             device = "空调"
         elif "灯" in clause:
             device = "灯"
