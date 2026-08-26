@@ -34,6 +34,12 @@ def build_service_call(
     if command.device == "climate" and command.action == "set_temperature":
         data["temperature"] = command.value
         return "climate", "set_temperature", data
+    if command.device == "climate" and command.action == "set_hvac_mode":
+        hvac_mode = str(command.value)
+        if hvac_mode not in {"off", "auto", "cool", "heat", "dry", "fan_only"}:
+            raise UnsupportedCommand("空调模式不受支持")
+        data["hvac_mode"] = hvac_mode
+        return "climate", "set_hvac_mode", data
     if command.device == "climate" and command.action == "set_fan_mode":
         data["fan_mode"] = command.value
         return "climate", "set_fan_mode", data

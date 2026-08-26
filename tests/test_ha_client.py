@@ -28,6 +28,13 @@ class ServiceCallTest(unittest.TestCase):
             self.assertEqual((domain, service), ("climate", "set_swing_mode"))
             self.assertEqual(data["swing_mode"], expected)
 
+    def test_climate_hvac_mode_is_allowlisted(self):
+        domain, service, data = build_service_call(
+            Command("书房", "climate", "set_hvac_mode", "cool"), self.entities
+        )
+        self.assertEqual((domain, service), ("climate", "set_hvac_mode"))
+        self.assertEqual(data["hvac_mode"], "cool")
+
     def test_invalid_climate_swing_mode_is_blocked(self):
         with self.assertRaises(UnsupportedCommand):
             build_service_call(Command("客厅", "climate", "set_swing", "diagonal"), self.entities)
