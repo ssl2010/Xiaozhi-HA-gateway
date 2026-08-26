@@ -34,8 +34,12 @@ rooms = data.get("rooms")
 assert isinstance(rooms, dict)
 assert set(rooms).issubset({"主卧", "次卧", "客厅", "书房"})
 assert "climate" not in rooms.get("次卧", {})
+allowed_roles = {"light", "climate", "floor_lamp", "air_purifier", "temperature", "humidity", "devices"}
+allowed_devices = {"light", "climate", "floor_lamp", "air_purifier"}
 for roles in rooms.values():
-    assert set(roles).issubset({"light", "climate", "temperature", "humidity"})
+    assert set(roles).issubset(allowed_roles)
+    devices = roles.get("devices", [])
+    assert all(item.get("id") in allowed_devices for item in devices)
 '
 
 if docker-compose logs 2>&1 | grep -Fq "${HA_TOKEN}"; then
