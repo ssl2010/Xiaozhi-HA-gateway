@@ -38,7 +38,14 @@ def build_service_call(
         data["fan_mode"] = command.value
         return "climate", "set_fan_mode", data
     if command.device == "climate" and command.action == "set_swing":
-        data["swing_mode"] = "on" if command.value else "off"
+        swing_mode = command.value
+        if swing_mode is True:  # Compatibility with commands created before capability discovery.
+            swing_mode = "vertical"
+        elif swing_mode is False:
+            swing_mode = "off"
+        if swing_mode not in {"off", "vertical", "horizontal", "both"}:
+            raise UnsupportedCommand("摆风只支持关闭、上下、左右或全向")
+        data["swing_mode"] = swing_mode
         return "climate", "set_swing_mode", data
     if command.device == "light" and command.action == "set_brightness":
         value = int(command.value)

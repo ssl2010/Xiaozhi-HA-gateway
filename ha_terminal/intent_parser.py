@@ -33,19 +33,34 @@ FAN_MODES = {
     "三档": "high",
 }
 
+LIGHT_EFFECTS = {
+    "自定义": "自定义模式",
+    "明亮": "明亮模式",
+    "电视": "电视模式",
+    "温馨": "温馨模式",
+    "夜灯": "夜灯模式",
+}
+
 CN_DIGITS = {"零": 0, "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
 
 
-def _temperature_value(value: str) -> int | None:
+def _integer_value(value: str) -> int | None:
     if value.isdigit():
-        number = int(value)
-    elif value == "十":
-        number = 10
+        return int(value)
+    if value == "一百":
+        return 100
+    if value == "十":
+        return 10
     elif "十" in value:
         tens, ones = value.split("十", 1)
-        number = (CN_DIGITS.get(tens, 1) * 10) + (CN_DIGITS.get(ones, 0) if ones else 0)
-    else:
-        number = CN_DIGITS.get(value, -1)
+        return (CN_DIGITS.get(tens, 1) * 10) + (CN_DIGITS.get(ones, 0) if ones else 0)
+    return CN_DIGITS.get(value)
+
+
+def _temperature_value(value: str) -> int | None:
+    number = _integer_value(value)
+    if number is None:
+        return None
     return number if 16 <= number <= 30 else None
 
 
@@ -91,14 +106,21 @@ def _parse_clause(room: str, clause: str, original: str) -> list[Command]:
     if "空调" in clause:
         commands: list[Command] = []
         swing_action = None
-        if any(word in clause for word in ("打开摆风", "开启摆风", "摆风打开", "扫风打开")):
-            swing_action = Command(room, "climate", "set_swing", True, original)
+        if any(word in clause for word in ("上下左右摆风", "全向摆风", "全摆风")):
+            swing_action = Command(room, "climate", "set_swing", "both", original)
+        elif any(word in clause for word in ("左右摆风", "水平摆风")):
+            swing_action = Command(room, "climate", "set_swing", "horizontal", original)
+        elif any(word in clause for word in ("上下摆风", "垂直摆风")):
+            swing_action = Command(room, "climate", "set_swing", "vertical", original)
+        elif any(word in clause for word in ("打开摆风", "开启摆风", "摆风打开", "扫风打开")):
+            swing_action = Command(room, "climate", "set_swing", "vertical", original)
         elif any(word in clause for word in ("关闭摆风", "摆风关闭", "停止摆风", "扫风关闭")):
-            swing_action = Command(room, "climate", "set_swing", False, original)
+            swing_action = Command(room, "climate", "set_swing", "off", original)
 
         switch_text = clause
-        for phrase in ("打开摆风", "开启摆风", "摆风打开", "关闭摆风", "摆风关闭", "停止摆风",
-                       "扫风打开", "扫风关闭"):
+        for phrase in ("上下左右摆风", "全向摆风", "全摆风", "左右摆风", "水平摆风", "上下摆风",
+                       "垂直摆风", "打开摆风", "开启摆风", "摆风打开", "关闭摆风", "摆风关闭",
+                       "停止摆风", "扫风打开", "扫风关闭"):
             switch_text = switch_text.replace(phrase, "")
         turn_on = any(word in switch_text for word in ("打开", "开启", "开空调"))
         turn_off = any(word in switch_text for word in ("关闭", "关空调"))
@@ -136,14 +158,20 @@ def _parse_clause(room: str, clause: str, original: str) -> list[Command]:
             commands.append(Command(room, "light", "turn_on", source_text=original))
         elif turn_off:
             commands.append(Command(room, "light", "turn_off", source_text=original))
-        brightness = re.search(r"(?:亮度)?(?:调到|调至)?(100|[1-9]?\d)%?", clause)
-        if brightness and any(word in clause for word in ("亮度", "调亮", "调暗", "%")):
-            commands.append(Command(room, "light", "set_brightness", int(brightness.group(1)), original))
+        brightness = re.search(
+            r"(?:亮度)?(?:调到|调至)?(?:百分之)?(100|[1-9]?\d|一百|[一二两三四五六七八九]?十[一二三四五六七八九]?|[零一二两三四五六七八九])(?:%|百分比)?",
+            clause,
+        )
+        if brightness and any(word in clause for word in ("亮度", "调亮", "调暗", "%", "百分之", "百分比")):
+            value = _integer_value(brightness.group(1))
+            if value is not None and 0 <= value <= 100:
+                commands.append(Command(room, "light", "set_brightness", value, original))
         effect = re.search(r"(?:切换到|切换成|切换|调到|换成)(.+?)(?:模式)?$", clause)
         if effect and any(word in clause for word in ("模式", "切换", "换成")):
             value = effect.group(1).removesuffix("灯").strip()
-            if value:
-                commands.append(Command(room, "light", "set_effect", value, original))
+            value = value.removesuffix("模式")
+            if value in LIGHT_EFFECTS:
+                commands.append(Command(room, "light", "set_effect", LIGHT_EFFECTS[value], original))
         if turn_off and len(commands) > 1:
             return []
         return commands

@@ -12,7 +12,10 @@ class IntentParserTest(unittest.TestCase):
         self.assertEqual(parse_commands("书房空调温度调到二十六度"), [Command("书房", "climate", "set_temperature", 26)])
         self.assertEqual(parse_commands("书房空调温度调到26度"), [Command("书房", "climate", "set_temperature", 26)])
         self.assertEqual(parse_commands("主卧空调调成高速"), [Command("主卧", "climate", "set_fan_mode", "high")])
-        self.assertEqual(parse_commands("客厅空调打开摆风"), [Command("客厅", "climate", "set_swing", True)])
+        self.assertEqual(parse_commands("客厅空调打开摆风"), [Command("客厅", "climate", "set_swing", "vertical")])
+        self.assertEqual(parse_commands("客厅空调左右摆风"), [Command("客厅", "climate", "set_swing", "horizontal")])
+        self.assertEqual(parse_commands("客厅空调全向摆风"), [Command("客厅", "climate", "set_swing", "both")])
+        self.assertEqual(parse_commands("客厅空调关闭摆风"), [Command("客厅", "climate", "set_swing", "off")])
 
     def test_compound_climate_command_keeps_every_action(self):
         self.assertEqual(
@@ -21,7 +24,7 @@ class IntentParserTest(unittest.TestCase):
                 Command("主卧", "climate", "turn_on"),
                 Command("主卧", "climate", "set_temperature", 26),
                 Command("主卧", "climate", "set_fan_mode", "high"),
-                Command("主卧", "climate", "set_swing", True),
+                Command("主卧", "climate", "set_swing", "vertical"),
             ],
         )
 
@@ -31,10 +34,12 @@ class IntentParserTest(unittest.TestCase):
     def test_lights(self):
         self.assertEqual(parse_commands("打开书房灯"), [Command("书房", "light", "turn_on")])
         self.assertEqual(parse_commands("次卧灯亮度调到35%"), [Command("次卧", "light", "set_brightness", 35)])
+        self.assertEqual(parse_commands("客厅灯亮度调到百分之五十六"), [Command("客厅", "light", "set_brightness", 56)])
         self.assertEqual(
-            parse_commands("把书房灯切换成阅读模式"),
-            [Command("书房", "light", "set_effect", "阅读")],
+            parse_commands("把书房灯切换成温馨模式"),
+            [Command("书房", "light", "set_effect", "温馨模式")],
         )
+        self.assertEqual(parse_commands("把书房灯切换成阅读模式"), [])
 
     def test_multiple_rooms(self):
         self.assertEqual(
